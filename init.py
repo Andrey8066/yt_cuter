@@ -14,13 +14,13 @@ os.makedirs(DOWNLOADS_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
-def download_video(url):
+def download_video(url, browser='chrome'):
     ydl_opts = {
         'format': 'bestvideo+bestaudio/best',
         'merge_output_format': 'mp4',
         'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
         'quiet': True,
-        'cookiesfrombrowser': ('firefox',),  # браузер, из которого берутся куки
+        'cookiesfrombrowser': (browser,),  # браузер, из которого берутся куки
     }
     with YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
@@ -66,6 +66,7 @@ def split_video_by_minutes(video_path, output_root, minutes=1):
 # GUI логика
 def start_download():
     url = url_entry.get()
+    browser = browser_name.get()
     if not url:
         messagebox.showerror("Ошибка", "Вставь ссылку на видео")
         return
@@ -74,7 +75,7 @@ def start_download():
     root.update()
 
     try:
-        video_path = download_video(url)
+        video_path = download_video(url, browser)
         log_text.set(f"Готово: {os.path.basename(video_path)}")
     except Exception as e:
         messagebox.showerror("Ошибка загрузки", str(e))
@@ -82,6 +83,7 @@ def start_download():
 
 def start_download_and_split():
     url = url_entry.get()
+    browser = browser_name.get()
     if not url:
         messagebox.showerror("Ошибка", "Вставь ссылку на видео")
         return
@@ -90,7 +92,7 @@ def start_download_and_split():
     root.update()
 
     try:
-        video_path = download_video(url)
+        video_path = download_video(url, browser)
         log_text.set("Разрезаем видео...")
         root.update()
 
@@ -111,11 +113,14 @@ tk.Label(root, text="Ссылка на YouTube:").grid(row=0, column=0, padx=5, 
 url_entry = tk.Entry(root, width=50)
 url_entry.grid(row=0, column=1, padx=5, pady=5)
 
+tk.Label(root, text="Название браузера:").grid(row=1, column=0, padx=5, pady=5, sticky="w")
+browser_name = tk.Entry(root, width=50)
+browser_name.grid(row=1, column=1, padx=5, pady=5)
 
-tk.Button(root, text="Скачать видео", command=start_download).grid(row=1, column=0, pady=5)
-tk.Button(root, text="Скачать и разделить", command=start_download_and_split).grid(row=1, column=1, pady=5)
+tk.Button(root, text="Скачать видео", command=start_download).grid(row=2, column=0, pady=5)
+tk.Button(root, text="Скачать и разделить", command=start_download_and_split).grid(row=2, column=1, pady=5)
 
 log_text = tk.StringVar()
-tk.Label(root, textvariable=log_text, fg="blue").grid(row=2, column=0, columnspan=2, pady=10)
+tk.Label(root, textvariable=log_text, fg="blue").grid(row=3, column=0, columnspan=2, pady=10)
 
 root.mainloop()
