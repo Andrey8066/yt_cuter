@@ -20,6 +20,7 @@ def download_video(url):
         'merge_output_format': 'mp4',
         'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
         'quiet': True,
+        'cookiesfrombrowser': ('firefox',),  # браузер, из которого берутся куки
     }
     with YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
@@ -109,6 +110,7 @@ root.title("YouTube Cutter by Артём")
 tk.Label(root, text="Ссылка на YouTube:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
 url_entry = tk.Entry(root, width=50)
 url_entry.grid(row=0, column=1, padx=5, pady=5)
+
 
 tk.Button(root, text="Скачать видео", command=start_download).grid(row=1, column=0, pady=5)
 tk.Button(root, text="Скачать и разделить", command=start_download_and_split).grid(row=1, column=1, pady=5)
