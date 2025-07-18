@@ -26,6 +26,13 @@ def get_cookies_file():
     return None
 
 
+def get_multiple_files():
+    filepaths = filedialog.askopenfilenames(
+        title="Выберите видеофайлы для разделения",
+        filetypes=(("Video files", "*.mp4;*.avi;*.mov;*.mkv"), ("All files", "*.*")))
+    return filepaths if filepaths else None
+
+
 def download_video(url, cookies_file=None, browser=None):
     ydl_opts = {
         'format': 'bestvideo+bestaudio/best',
@@ -53,14 +60,16 @@ def download_video(url, cookies_file=None, browser=None):
                   reverse=True)
     return os.path.join(DOWNLOADS_DIR, files[0]) if files else None
 
-
 def split_video_by_minutes(video_path, output_root, minutes=1):
+    video_name = video_path.split("/")[-1]
     if not video_path or not os.path.exists(video_path):
         raise FileNotFoundError("Видео файл не найден")
 
+    # Создаем папку с именем файла (без расширения)
     date_folder = datetime.now().strftime("%Y-%m-%d")
     output_folder = os.path.join(output_root, date_folder)
     os.makedirs(output_folder, exist_ok=True)
+
 
     duration_cmd = [
         'ffprobe', '-v', 'error', '-show_entries', 'format=duration',
@@ -74,7 +83,7 @@ def split_video_by_minutes(video_path, output_root, minutes=1):
     for i in range(total_parts):
         start_time = i * minutes * 60
         part_number = str(i + 1).zfill(3)
-        output_path = os.path.join(output_folder, f"part_{part_number}.mp4")
+        output_path = os.path.join(output_folder, f"{video_name}_{part_number}.mp4")
 
         cmd = [
             'ffmpeg', '-y', '-i', video_path,
@@ -84,9 +93,7 @@ def split_video_by_minutes(video_path, output_root, minutes=1):
         ]
         subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
-    os.remove(video_path)
     return output_folder
-
 
 def start_download_with_cookies():
     cookies_file = get_cookies_file()
@@ -171,12 +178,39 @@ def start_download_and_split():
         video_path = download_video(url)
         if not video_path:
             start_download_and_split_with_cookies()
+            return
 
         log_text.set("Разрезаем видео...")
         root.update()
 
         output_folder = split_video_by_minutes(video_path, OUTPUT_DIR)
         log_text.set(f"Готово. Куски в {output_folder}")
+    except Exception as e:
+        messagebox.showerror("Ошибка", str(e))
+
+
+def start_split():
+    try:
+        filepaths = get_multiple_files()
+        if not filepaths:
+            return
+
+        log_text.set(f"Найдено {len(filepaths)} видео. Начинаем обработку...")
+        root.update()
+
+        success_count = 0
+        for video_path in filepaths:
+            try:
+                output_folder = split_video_by_minutes(video_path, OUTPUT_DIR)
+                success_count += 1
+                log_text.set(f"Обработано: {os.path.basename(video_path)}")
+                root.update()
+            except Exception as e:
+                log_text.set(f"Ошибка при обработке {os.path.basename(video_path)}: {str(e)}")
+                root.update()
+
+        log_text.set(f"Готово! Успешно обработано {success_count} из {len(filepaths)} видео")
+        
     except Exception as e:
         messagebox.showerror("Ошибка", str(e))
 
@@ -191,7 +225,7 @@ url_entry.grid(row=0, column=1, padx=5, pady=5)
 
 tk.Button(root, text="Скачать видео", command=start_download).grid(row=1, column=0, pady=5)
 tk.Button(root, text="Скачать и разделить", command=start_download_and_split).grid(row=1, column=1, pady=5)
-
+tk.Button(root, text="Разделить выбранные видео", command=start_split).grid(row=2, column=0, columnspan=2, pady=5)
 log_text = tk.StringVar()
 tk.Label(root, textvariable=log_text, fg="blue").grid(row=3, column=0, columnspan=2, pady=10)
 
