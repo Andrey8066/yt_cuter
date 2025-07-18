@@ -10,8 +10,11 @@ from datetime import datetime
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DOWNLOADS_DIR = os.path.join(BASE_DIR, 'youtube_downloads')
 OUTPUT_DIR = os.path.join(BASE_DIR, 'videos_output')
+SPLIT_INPUT_DIR = os.path.join(BASE_DIR, 'BY_SPLIT')
+
 os.makedirs(DOWNLOADS_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+os.makedirs(SPLIT_INPUT_DIR, exist_ok=True)
 
 
 def download_video(url, browser='chrome'):
