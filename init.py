@@ -79,7 +79,7 @@ def start_download():
         messagebox.showerror("Ошибка загрузки", str(e))
 
 
-def start_download_and_split():
+def start_download_and_split(segment_time):
     url = url_entry.get()
     if not url:
         messagebox.showerror("Ошибка", "Вставь ссылку на видео")
@@ -93,7 +93,7 @@ def start_download_and_split():
         log_text.set("Разрезаем видео...")
         root.update()
 
-        split_video_by_minutes(video_path, OUTPUT_DIR)
+        split_video_by_minutes(video_path, OUTPUT_DIR, segment_time)
         log_text.set("Готово. Все куски в videos_output/<дата>. Исходник удалён.")
     except Exception as e:
         messagebox.showerror("Ошибка", str(e))
@@ -106,11 +106,14 @@ root.title("YouTube Cutter by Артём")
 tk.Label(root, text="Ссылка на YouTube:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
 url_entry = tk.Entry(root, width=50)
 url_entry.grid(row=0, column=1, padx=5, pady=5)
+tk.Label(root, text="Длина сегмента:").grid(row=1, column=0, padx=5, pady=5, sticky="w")
+segment_time = tk.Entry(root, width=50)
+segment_time.grid(row=1, column=1, padx=5, pady=5)
 
-tk.Button(root, text="Скачать видео", command=start_download).grid(row=1, column=0, pady=5)
-tk.Button(root, text="Скачать и разделить", command=start_download_and_split).grid(row=1, column=1, pady=5)
+tk.Button(root, text="Скачать видео", command=start_download).grid(row=2, column=0, pady=5)
+tk.Button(root, text="Скачать и разделить", command=start_download_and_split(segment_time.getint)).grid(row=2, column=1, pady=5)
 
 log_text = tk.StringVar()
-tk.Label(root, textvariable=log_text, fg="blue").grid(row=2, column=0, columnspan=2, pady=10)
+tk.Label(root, textvariable=log_text, fg="blue").grid(row=3, column=0, columnspan=2, pady=10)
 
 root.mainloop()
